@@ -87,13 +87,6 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
-        .btn-small {
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            width: auto;
-            margin: 5px;
-        }
-        
         input[type="text"], input[type="number"] {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -129,6 +122,23 @@
             border-radius: 15px;
             margin: 20px 0;
             word-break: break-word;
+        }
+        
+        .hidden-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3rem;
+            border-radius: 15px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .hidden-card:hover {
+            transform: scale(1.02);
+        }
+        
+        .hidden-card:active {
+            transform: scale(0.98);
         }
         
         .impostor-word {
@@ -272,15 +282,17 @@
             </div>
         </div>
         
-        <!-- Screen: Pass Around -->
-        <div id="screen-pass" class="screen">
+        <!-- Screen: Pass Around - Hidden Card -->
+        <div id="screen-pass-hidden" class="screen">
             <div class="card">
-                <p class="progress" id="passProgress">Spieler 1</p>
+                <p class="progress" id="passHiddenPrompt">Spieler 1 ist an der Reihe</p>
                 
-                <div class="word-display" id="wordDisplay">
+                <div class="hidden-card" id="hiddenCard" onclick="revealCard()">
+                    <p style="font-size: 1.5rem;">🎴</p>
+                    <p style="margin-top: 10px;">Karte umdrehen</p>
                 </div>
                 
-                <button class="btn" onclick="nextPlayer()">Weiter</button>
+                <button class="btn" id="nextPlayerBtn" onclick="nextPlayer()" style="display: none;">Weiter</button>
             </div>
         </div>
         
@@ -316,6 +328,7 @@
             playerNames: [],
             currentNameIndex: 0,
             currentPlayerIndex: 0,
+            isCardRevealed: false,
             currentWord: '',
             currentCategory: '',
             impostorIndex: -1,
@@ -414,28 +427,34 @@
             }
             
             state.currentPlayerIndex = 0;
-            showScreen('screen-pass');
-            showPassScreen();
+            state.isCardRevealed = false;
+            showScreen('screen-pass-hidden');
+            showHiddenCard();
         }
         
-        function showPassScreen() {
-            document.getElementById('passProgress').textContent = state.playerNames[state.currentPlayerIndex] + ' - Begriff ansehen';
+        function showHiddenCard() {
+            state.isCardRevealed = false;
+            document.getElementById('passHiddenPrompt').textContent = state.playerNames[state.currentPlayerIndex] + ' ist an der Reihe';
+            
+            document.getElementById('hiddenCard').innerHTML = '<p style="font-size: 3rem;">🎴</p><p style="margin-top: 15px; font-size: 1.2rem;">Karte umdrehen</p>';
+            document.getElementById('hiddenCard').style.display = 'block';
+            document.getElementById('nextPlayerBtn').style.display = 'none';
+        }
+        
+        function revealCard() {
+            if (state.isCardRevealed) return;
+            state.isCardRevealed = true;
             
             const wordData = state.words[state.currentPlayerIndex];
-            const wordDisplay = document.getElementById('wordDisplay');
+            const card = document.getElementById('hiddenCard');
             
             if (wordData.isImpostor) {
-                wordDisplay.innerHTML = `
-                    <p class="category-only">Kategorie:</p>
-                    <p class="impostor-word" style="font-size: 2rem;">${wordData.category}</p>
-                    <p style="margin-top: 20px; color: #ff6b6b; font-size: 1.2rem;">DU BIST DER IMPOSTOR!</p>
-                `;
+                card.innerHTML = '<p class="category-only" style="font-size: 1rem;">Kategorie:</p><p class="impostor-word" style="font-size: 2.5rem;">' + wordData.category + '</p><p style="margin-top: 20px; color: #ff6b6b; font-size: 1.3rem;">DU BIST DER IMPOSTOR!</p>';
             } else {
-                wordDisplay.innerHTML = `
-                    <p style="color: #aaa;">Dein geheimes Wort:</p>
-                    <p style="font-size: 2.5rem; color: #4caf50; margin-top: 10px;">${wordData.word}</p>
-                `;
+                card.innerHTML = '<p style="color: #aaa; font-size: 1rem;">Dein geheimes Wort:</p><p style="font-size: 3rem; color: #4caf50; margin-top: 10px;">' + wordData.word + '</p>';
             }
+            
+            document.getElementById('nextPlayerBtn').style.display = 'block';
         }
         
         function nextPlayer() {
@@ -444,7 +463,7 @@
             if (state.currentPlayerIndex >= state.playerCount) {
                 showSelectImposter();
             } else {
-                showPassScreen();
+                showHiddenCard();
             }
         }
         
@@ -457,10 +476,7 @@
             for (let i = 0; i < state.playerCount; i++) {
                 const card = document.createElement('div');
                 card.className = 'player-card';
-                card.innerHTML = `
-                    <span class="player-number">${i + 1}</span>
-                    <span style="font-size: 1.2rem;">${state.playerNames[i]}</span>
-                `;
+                card.innerHTML = '<span class="player-number">' + (i + 1) + '</span><span style="font-size: 1.2rem;">' + state.playerNames[i] + '</span>';
                 card.onclick = function() { selectImposter(i); };
                 selectionDiv.appendChild(card);
             }
@@ -475,16 +491,10 @@
             showScreen('screen-results');
             
             const resultBox = document.getElementById('resultBox');
+            let resultHTML = '<p style="color: #aaa; margin-bottom: 10px;">Du hast gewählt:</p><p style="font-size: 1.5rem; margin-bottom: 20px;">' + state.playerNames[state.selectedImpostor] + '</p>';
             
-            let resultHTML = '';
-            
-            // Show which player was selected
-            resultHTML += '<p style="color: #aaa; margin-bottom: 10px;">Du hast gewählt:</p>';
-            resultHTML += '<p style="font-size: 1.5rem; margin-bottom: 20px;">' + state.playerNames[state.selectedImpostor] + '</p>';
-            
-            // Determine winner
             if (state.selectedImpostor === state.impostorIndex) {
-                resultHTML += '<p class="winner-text">🎉 DER IMPOSTOR WURDE ENTlarvt!</p>';
+                resultHTML += '<p class="winner-text">🎉 DER IMPOSTOR WURDE ENTLARVT!</p>';
             } else {
                 resultHTML += '<p class="loser-text" style="font-size: 2rem;">😢 DU HAST DEN IMPOSTOR NICHT ERKANNT!</p>';
                 resultHTML += '<p>Das geheime Wort war: <strong>' + state.currentWord + '</strong></p>';
