@@ -87,6 +87,13 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            width: auto;
+            margin: 5px;
+        }
+        
         input[type="text"], input[type="number"] {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -138,36 +145,11 @@
             margin-bottom: 1rem;
         }
         
-        .player-list {
-            list-style: none;
-            text-align: left;
-            margin: 20px 0;
-        }
-        
-        .player-list li {
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            margin: 8px 0;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .player-name-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: #fff;
-            padding: 12px 15px;
+        .name-input {
+            padding: 12px;
             font-size: 1rem;
-            border-radius: 10px;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        
-        .player-name-input:focus {
-            outline: none;
-            border-color: #e94560;
+            margin: 5px 0;
+            text-align: left;
         }
         
         .voting-grid {
@@ -205,29 +187,6 @@
             margin: 10px 0;
         }
         
-        .instructions {
-            text-align: left;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin: 20px 0;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        
-        .instructions h3 {
-            color: #e94560;
-            margin-bottom: 10px;
-        }
-        
-        .instructions ol {
-            margin-left: 20px;
-        }
-        
-        .instructions li {
-            margin: 5px 0;
-        }
-        
         .player-card {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
@@ -257,6 +216,20 @@
             justify-content: center;
             font-weight: bold;
             margin-right: 10px;
+        }
+        
+        .name-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .name-list-item {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
         }
         
         @media (max-height: 600px) {
@@ -289,36 +262,35 @@
         <div id="screen-names" class="screen">
             <div class="card">
                 <h2>Spielernamen</h2>
-                <p style="margin: 10px 0; color: #aaa;" id="namePrompt">Spieler 1: Name eingeben</p>
+                <p style="margin: 10px 0; color: #aaa;" id="namePrompt">Spieler 1</p>
                 
-                <input type="text" id="playerNameInput" placeholder="Name eingeben..." maxlength="20">
+                <input type="text" id="playerNameInput" placeholder="Name eingeben..." maxlength="20" autocomplete="off">
                 
                 <button class="btn" onclick="addPlayerName()">Bestätigen</button>
-                <button class="btn btn-secondary" onclick="skipName()" id="skipNameBtn" style="display: none;">Überspringen</button>
+                
+                <div id="nameList" class="name-list"></div>
             </div>
         </div>
         
         <!-- Screen: Pass Around -->
         <div id="screen-pass" class="screen">
             <div class="card">
-                <p class="progress" id="passProgress">Spieler 1 von 4</p>
+                <p class="progress" id="passProgress">Spieler 1</p>
                 
                 <div class="word-display" id="wordDisplay">
-                    <!-- Word or Imposter message goes here -->
                 </div>
                 
                 <button class="btn" onclick="nextPlayer()">Weiter</button>
             </div>
-               <!-- Screen: </div>
+        </div>
         
- Select Imposter -->
+        <!-- Screen: Select Imposter -->
         <div id="screen-select" class="screen">
             <div class="card">
                 <h2>Wer ist der Imposter?</h2>
-                <p style="color: #aaa; margin-bottom: 20px;">Wähle den Spieler, der der Imposter sein könnte:</p>
+                <p style="color: #aaa; margin-bottom: 20px;">Tippe auf den Spieler, der der Imposter ist:</p>
                 
                 <div id="playerSelection">
-                    <!-- Player cards go here -->
                 </div>
             </div>
         </div>
@@ -329,7 +301,6 @@
                 <h2>📊 Ergebnis</h2>
                 
                 <div class="result-box" id="resultBox">
-                    <!-- Results go here -->
                 </div>
                 
                 <button class="btn" onclick="newRound()">Neue Runde</button>
@@ -361,7 +332,6 @@
                 const data = await response.json();
                 kategorien = data.kategorien;
             } catch (e) {
-                // Fallback data if fetch fails
                 kategorien = [
                     { "name": "Obst", "woerter": ["Apfel", "Birne"] },
                     { "name": "Tiere", "woerter": ["Hund", "Katze"] },
@@ -387,19 +357,14 @@
             state.playerNames = [];
             state.currentNameIndex = 0;
             document.getElementById('playerNameInput').value = '';
-            document.getElementById('skipNameBtn').style.display = 'none';
+            document.getElementById('nameList').innerHTML = '';
             showScreen('screen-names');
             updateNamePrompt();
         }
         
         function updateNamePrompt() {
-            const defaultName = 'Spieler ' + (state.currentNameIndex + 1);
-            document.getElementById('namePrompt').textContent = `${defaultName}: Name eingeben`;
-            document.getElementById('playerNameInput').placeholder = defaultName;
-            
-            if (state.currentNameIndex > 0) {
-                document.getElementById('skipNameBtn').style.display = 'inline-block';
-            }
+            document.getElementById('namePrompt').textContent = 'Spieler ' + (state.currentNameIndex + 1) + ' von ' + state.playerCount;
+            document.getElementById('playerNameInput').focus();
         }
         
         function addPlayerName() {
@@ -411,19 +376,15 @@
             }
             
             state.playerNames.push(name);
+            
+            // Show name in list
+            const nameList = document.getElementById('nameList');
+            const item = document.createElement('div');
+            item.className = 'name-list-item';
+            item.innerHTML = '<span class="player-number">' + state.playerNames.length + '</span>' + name;
+            nameList.appendChild(item);
+            
             input.value = '';
-            
-            state.currentNameIndex++;
-            
-            if (state.currentNameIndex >= state.playerCount) {
-                startGame();
-            } else {
-                updateNamePrompt();
-            }
-        }
-        
-        function skipName() {
-            state.playerNames.push('Spieler ' + (state.currentNameIndex + 1));
             state.currentNameIndex++;
             
             if (state.currentNameIndex >= state.playerCount) {
@@ -458,8 +419,7 @@
         }
         
         function showPassScreen() {
-            document.getElementById('passProgress').textContent = 
-                `${state.playerNames[state.currentPlayerIndex]} - Begriff ansehen`;
+            document.getElementById('passProgress').textContent = state.playerNames[state.currentPlayerIndex] + ' - Begriff ansehen';
             
             const wordData = state.words[state.currentPlayerIndex];
             const wordDisplay = document.getElementById('wordDisplay');
@@ -482,7 +442,6 @@
             state.currentPlayerIndex++;
             
             if (state.currentPlayerIndex >= state.playerCount) {
-                // All players have seen their words - show selection
                 showSelectImposter();
             } else {
                 showPassScreen();
@@ -502,7 +461,7 @@
                     <span class="player-number">${i + 1}</span>
                     <span style="font-size: 1.2rem;">${state.playerNames[i]}</span>
                 `;
-                card.onclick = () => selectImposter(i);
+                card.onclick = function() { selectImposter(i); };
                 selectionDiv.appendChild(card);
             }
         }
@@ -520,21 +479,16 @@
             let resultHTML = '';
             
             // Show which player was selected
-            resultHTML += `<p style="color: #aaa; margin-bottom: 10px;">Du hast gewählt:</p>`;
-            resultHTML += `<p style="font-size: 1.5rem; margin-bottom: 20px;">${state.playerNames[state.selectedImpostor]}</p>`;
+            resultHTML += '<p style="color: #aaa; margin-bottom: 10px;">Du hast gewählt:</p>';
+            resultHTML += '<p style="font-size: 1.5rem; margin-bottom: 20px;">' + state.playerNames[state.selectedImpostor] + '</p>';
             
             // Determine winner
             if (state.selectedImpostor === state.impostorIndex) {
-                resultHTML += `
-                    <p class="winner-text">🎉 GRUPPENGEWINN!</p>
-                    <p style="font-size: 1.2rem;">Der Imposter wurde entlarvt!</p>
-                `;
+                resultHTML += '<p class="winner-text">🎉 DER IMPOSTOR WURDE ENTlarvt!</p>';
             } else {
-                resultHTML += `
-                    <p class="loser-text" style="font-size: 2rem;">😢 IMPOSTOR GEWINNT!</p>
-                    <p>Das geheime Wort war: <strong>${state.currentWord}</strong></p>
-                    <p style="margin-top: 10px;">${state.playerNames[state.impostorIndex]} war der Imposter!</p>
-                `;
+                resultHTML += '<p class="loser-text" style="font-size: 2rem;">😢 DU HAST DEN IMPOSTOR NICHT ERKANNT!</p>';
+                resultHTML += '<p>Das geheime Wort war: <strong>' + state.currentWord + '</strong></p>';
+                resultHTML += '<p style="margin-top: 10px;">' + state.playerNames[state.impostorIndex] + ' war der Imposter!</p>';
             }
             
             resultBox.innerHTML = resultHTML;
@@ -550,6 +504,7 @@
             state.words = [];
             state.impostorIndex = -1;
             state.selectedImpostor = -1;
+            state.currentNameIndex = 0;
             
             document.getElementById('playerCountSlider').value = 4;
             document.getElementById('playerCountDisplay').textContent = '4';
