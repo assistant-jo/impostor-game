@@ -87,21 +87,25 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
-        input[type="number"] {
+        input[type="text"], input[type="number"] {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.3);
             color: #fff;
             padding: 15px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             border-radius: 15px;
             width: 100%;
             text-align: center;
-            margin: 20px 0;
+            margin: 10px 0;
         }
         
-        input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus {
             outline: none;
             border-color: #e94560;
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .player-count-display {
@@ -112,7 +116,7 @@
         }
         
         .word-display {
-            font-size: 2rem;
+            font-size: 1.8rem;
             padding: 2rem;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
@@ -141,30 +145,29 @@
         }
         
         .player-list li {
-            padding: 10px;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.05);
-            margin: 5px 0;
-            border-radius: 10px;
+            margin: 8px 0;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
-        .player-number {
-            background: #e94560;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+        .player-name-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border-radius: 10px;
+            width: 100%;
+            margin-bottom: 10px;
         }
         
-        .hint-input {
-            font-size: 1.5rem;
-            padding: 15px;
-            text-align: center;
+        .player-name-input:focus {
+            outline: none;
+            border-color: #e94560;
         }
         
         .voting-grid {
@@ -197,8 +200,8 @@
         }
         
         .vote-count {
-            font-size: 1.5rem;
-            color: #e94560;
+            font-size: 1.2rem;
+            color: #aaa;
             margin: 10px 0;
         }
         
@@ -225,6 +228,37 @@
             margin: 5px 0;
         }
         
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .player-card.selected {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+        }
+        
+        .player-number {
+            background: #e94560;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
         @media (max-height: 600px) {
             h1 { font-size: 2rem; }
             .card { padding: 1.5rem; }
@@ -237,28 +271,30 @@
         <h1>🎭 Impostor</h1>
         <p class="subtitle">Finde den Imposter!</p>
         
-        <!-- Screen: Start -->
-        <div id="screen-start" class="screen active">
+        <!-- Screen: Player Count -->
+        <div id="screen-players" class="screen active">
             <div class="card">
-                <h2>Spiel starten</h2>
+                <h2>Spieleranzahl</h2>
                 <p style="margin: 20px 0; color: #aaa;">Wie viele Spieler?</p>
                 
                 <div class="player-count-display" id="playerCountDisplay">4</div>
                 
                 <input type="range" id="playerCountSlider" min="3" max="20" value="4" style="width: 100%; margin: 20px 0;">
                 
-                <button class="btn" onclick="startGame()">Spiel starten</button>
+                <button class="btn" onclick="goToNames()">Weiter</button>
+            </div>
+        </div>
+        
+        <!-- Screen: Player Names -->
+        <div id="screen-names" class="screen">
+            <div class="card">
+                <h2>Spielernamen</h2>
+                <p style="margin: 10px 0; color: #aaa;" id="namePrompt">Spieler 1: Name eingeben</p>
                 
-                <div class="instructions">
-                    <h3>So funktioniert's:</h3>
-                    <ol>
-                        <li>Alle Spieler erhalten ein geheimes Wort</li>
-                        <li>Ein Spieler ist der Imposter (nur Kategorie)</li>
-                        <li>Jeder gibt mündlich einen Hinweis</li>
-                        <li>Diskutiert und stimmt ab</li>
-                        <li>Gruppe gewinnt wenn Imposter entlarvt</li>
-                    </ol>
-                </div>
+                <input type="text" id="playerNameInput" placeholder="Name eingeben..." maxlength="20">
+                
+                <button class="btn" onclick="addPlayerName()">Bestätigen</button>
+                <button class="btn btn-secondary" onclick="skipName()" id="skipNameBtn" style="display: none;">Überspringen</button>
             </div>
         </div>
         
@@ -273,48 +309,16 @@
                 
                 <button class="btn" onclick="nextPlayer()">Weiter</button>
             </div>
-        </div>
+               <!-- Screen: </div>
         
-        <!-- Screen: Hint Phase -->
-        <div id="screen-hint" class="screen">
+ Select Imposter -->
+        <div id="screen-select" class="screen">
             <div class="card">
-                <p class="progress" id="hintProgress">Spieler 1 von 4</p>
+                <h2>Wer ist der Imposter?</h2>
+                <p style="color: #aaa; margin-bottom: 20px;">Wähle den Spieler, der der Imposter sein könnte:</p>
                 
-                <h2 style="margin-bottom: 20px;">Hinweis geben</h2>
-                
-                <p style="color: #aaa; margin-bottom: 20px;">Gib mündlich EIN Wort als Hinweis!</p>
-                
-                <div class="word-display" id="hintWordDisplay">
-                    <!-- Word goes here -->
-                </div>
-                
-                <button class="btn" onclick="nextHint()">Hinweis gegeben ✓</button>
-            </div>
-        </div>
-        
-        <!-- Screen: Discussion -->
-        <div id="screen-discussion" class="screen">
-            <div class="card">
-                <h2>💬 Diskussion</h2>
-                
-                <div class="instructions">
-                    <p>Besprecht jetzt mündlich, wer der Imposter sein könnte!</p>
-                    <p style="margin-top: 15px; color: #888;">Tipp: Achtet auf Hinweise, die nicht zum selben Thema passen...</p>
-                </div>
-                
-                <button class="btn" onclick="startVoting()">Abstimmung starten</button>
-            </div>
-        </div>
-        
-        <!-- Screen: Voting -->
-        <div id="screen-voting" class="screen">
-            <div class="card">
-                <p class="progress" id="voteProgress">Spieler 1 von 4</p>
-                
-                <h2 style="margin-bottom: 20px;">Wer ist der Imposter?</h2>
-                
-                <div class="voting-grid" id="votingGrid">
-                    <!-- Voting buttons go here -->
+                <div id="playerSelection">
+                    <!-- Player cards go here -->
                 </div>
             </div>
         </div>
@@ -328,7 +332,7 @@
                     <!-- Results go here -->
                 </div>
                 
-                <button class="btn" onclick="newGame()">Neue Runde</button>
+                <button class="btn" onclick="newRound()">Neue Runde</button>
                 <button class="btn btn-secondary" onclick="resetGame()">Neues Spiel</button>
             </div>
         </div>
@@ -338,23 +342,33 @@
         // Game State
         let state = {
             playerCount: 4,
-            players: [],
+            playerNames: [],
+            currentNameIndex: 0,
             currentPlayerIndex: 0,
             currentWord: '',
             currentCategory: '',
             impostorIndex: -1,
             words: [],
-            votes: [],
-            currentVoterIndex: 0
+            selectedImpostor: -1
         };
         
         let kategorien = [];
         
         // Load data
         async function loadData() {
-            const response = await fetch('data/kategorien.json');
-            const data = await response.json();
-            kategorien = data.kategorien;
+            try {
+                const response = await fetch('data/kategorien.json');
+                const data = await response.json();
+                kategorien = data.kategorien;
+            } catch (e) {
+                // Fallback data if fetch fails
+                kategorien = [
+                    { "name": "Obst", "woerter": ["Apfel", "Birne"] },
+                    { "name": "Tiere", "woerter": ["Hund", "Katze"] },
+                    { "name": "Farben", "woerter": ["Rot", "Blau"] },
+                    { "name": "Sport", "woerter": ["Fußbal", "Tennis"] }
+                ];
+            }
         }
         
         // Utility functions
@@ -368,12 +382,58 @@
         }
         
         // Game functions
-        function startGame() {
+        function goToNames() {
             state.playerCount = parseInt(document.getElementById('playerCountSlider').value);
-            state.players = [];
-            state.votes = [];
-            state.currentPlayerIndex = 0;
+            state.playerNames = [];
+            state.currentNameIndex = 0;
+            document.getElementById('playerNameInput').value = '';
+            document.getElementById('skipNameBtn').style.display = 'none';
+            showScreen('screen-names');
+            updateNamePrompt();
+        }
+        
+        function updateNamePrompt() {
+            const defaultName = 'Spieler ' + (state.currentNameIndex + 1);
+            document.getElementById('namePrompt').textContent = `${defaultName}: Name eingeben`;
+            document.getElementById('playerNameInput').placeholder = defaultName;
             
+            if (state.currentNameIndex > 0) {
+                document.getElementById('skipNameBtn').style.display = 'inline-block';
+            }
+        }
+        
+        function addPlayerName() {
+            const input = document.getElementById('playerNameInput');
+            let name = input.value.trim();
+            
+            if (!name) {
+                name = 'Spieler ' + (state.currentNameIndex + 1);
+            }
+            
+            state.playerNames.push(name);
+            input.value = '';
+            
+            state.currentNameIndex++;
+            
+            if (state.currentNameIndex >= state.playerCount) {
+                startGame();
+            } else {
+                updateNamePrompt();
+            }
+        }
+        
+        function skipName() {
+            state.playerNames.push('Spieler ' + (state.currentNameIndex + 1));
+            state.currentNameIndex++;
+            
+            if (state.currentNameIndex >= state.playerCount) {
+                startGame();
+            } else {
+                updateNamePrompt();
+            }
+        }
+        
+        function startGame() {
             // Select random category and word
             const kat = getRandomItem(kategorien);
             state.currentCategory = kat.name;
@@ -392,13 +452,14 @@
                 }
             }
             
+            state.currentPlayerIndex = 0;
             showScreen('screen-pass');
             showPassScreen();
         }
         
         function showPassScreen() {
             document.getElementById('passProgress').textContent = 
-                `Spieler ${state.currentPlayerIndex + 1} von ${state.playerCount}`;
+                `${state.playerNames[state.currentPlayerIndex]} - Begriff ansehen`;
             
             const wordData = state.words[state.currentPlayerIndex];
             const wordDisplay = document.getElementById('wordDisplay');
@@ -406,13 +467,13 @@
             if (wordData.isImpostor) {
                 wordDisplay.innerHTML = `
                     <p class="category-only">Kategorie:</p>
-                    <p class="impostor-word">${wordData.category}</p>
-                    <p style="margin-top: 20px; color: #ff6b6b;">DU BIST DER IMPOSTOR!</p>
+                    <p class="impostor-word" style="font-size: 2rem;">${wordData.category}</p>
+                    <p style="margin-top: 20px; color: #ff6b6b; font-size: 1.2rem;">DU BIST DER IMPOSTOR!</p>
                 `;
             } else {
                 wordDisplay.innerHTML = `
-                    <p>Dein geheimes Wort:</p>
-                    <p style="font-size: 2.5rem; color: #4caf50;">${wordData.word}</p>
+                    <p style="color: #aaa;">Dein geheimes Wort:</p>
+                    <p style="font-size: 2.5rem; color: #4caf50; margin-top: 10px;">${wordData.word}</p>
                 `;
             }
         }
@@ -421,141 +482,90 @@
             state.currentPlayerIndex++;
             
             if (state.currentPlayerIndex >= state.playerCount) {
-                // All players have seen their words
-                showHintPhase();
+                // All players have seen their words - show selection
+                showSelectImposter();
             } else {
                 showPassScreen();
             }
         }
         
-        function showHintPhase() {
-            state.currentPlayerIndex = 0;
-            showScreen('screen-hint');
-            showHintScreen();
-        }
-        
-        function showHintScreen() {
-            document.getElementById('hintProgress').textContent = 
-                `Spieler ${state.currentPlayerIndex + 1} von ${state.playerCount}`;
+        function showSelectImposter() {
+            showScreen('screen-select');
             
-            const wordData = state.words[state.currentPlayerIndex];
-            const hintWordDisplay = document.getElementById('hintWordDisplay');
-            
-            hintWordDisplay.innerHTML = `
-                <p style="color: #aaa;">Spieler ${state.currentPlayerIndex + 1} sieht sein Wort:</p>
-                <p style="font-size: 2rem; color: #4caf50; margin-top: 10px;">${wordData.word || wordData.category}</p>
-            `;
-        }
-        
-        function nextHint() {
-            state.currentPlayerIndex++;
-            
-            if (state.currentPlayerIndex >= state.playerCount) {
-                // All hints given
-                showScreen('screen-discussion');
-            } else {
-                showHintScreen();
-            }
-        }
-        
-        function startVoting() {
-            state.currentVoterIndex = 0;
-            state.votes = [];
-            showScreen('screen-voting');
-            showVotingScreen();
-        }
-        
-        function showVotingScreen() {
-            document.getElementById('voteProgress').textContent = 
-                `Spieler ${state.currentVoterIndex + 1} von ${state.playerCount}`;
-            
-            const grid = document.getElementById('votingGrid');
-            grid.innerHTML = '';
+            const selectionDiv = document.getElementById('playerSelection');
+            selectionDiv.innerHTML = '';
             
             for (let i = 0; i < state.playerCount; i++) {
-                if (i !== state.currentVoterIndex) {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn vote-btn';
-                    btn.textContent = `Spieler ${i + 1}`;
-                    btn.onclick = () => castVote(i);
-                    grid.appendChild(btn);
-                }
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <span class="player-number">${i + 1}</span>
+                    <span style="font-size: 1.2rem;">${state.playerNames[i]}</span>
+                `;
+                card.onclick = () => selectImposter(i);
+                selectionDiv.appendChild(card);
             }
         }
         
-        function castVote(votedForIndex) {
-            state.votes.push(votedForIndex);
-            state.currentVoterIndex++;
-            
-            if (state.currentVoterIndex >= state.playerCount) {
-                showResults();
-            } else {
-                showVotingScreen();
-            }
+        function selectImposter(selectedIndex) {
+            state.selectedImpostor = selectedIndex;
+            showResults();
         }
         
         function showResults() {
             showScreen('screen-results');
             
-            // Count votes
-            const voteCounts = {};
-            state.votes.forEach(v => {
-                voteCounts[v] = (voteCounts[v] || 0) + 1;
-            });
-            
-            // Find player with most votes
-            let maxVotes = 0;
-            let eliminatedPlayer = -1;
-            
-            for (const [player, count] of Object.entries(voteCounts)) {
-                if (count > maxVotes) {
-                    maxVotes = count;
-                    eliminatedPlayer = parseInt(player);
-                }
-            }
-            
             const resultBox = document.getElementById('resultBox');
             
-            let resultHTML = '<h3>Abstimmungsergebnis:</h3>';
+            let resultHTML = '';
             
-            // Show all vote counts
-            for (let i = 0; i < state.playerCount; i++) {
-                const count = voteCounts[i] || 0;
-                const marker = i === eliminatedPlayer ? ' ❌' : '';
-                resultHTML += `<p class="vote-count">Spieler ${i + 1}: ${count} Stimmen${marker}</p>`;
-            }
+            // Show which player was selected
+            resultHTML += `<p style="color: #aaa; margin-bottom: 10px;">Du hast gewählt:</p>`;
+            resultHTML += `<p style="font-size: 1.5rem; margin-bottom: 20px;">${state.playerNames[state.selectedImpostor]}</p>`;
             
             // Determine winner
-            if (eliminatedPlayer === state.impostorIndex) {
+            if (state.selectedImpostor === state.impostorIndex) {
                 resultHTML += `
                     <p class="winner-text">🎉 GRUPPENGEWINN!</p>
-                    <p>Der Imposter wurde entlarvt!</p>
+                    <p style="font-size: 1.2rem;">Der Imposter wurde entlarvt!</p>
                 `;
             } else {
                 resultHTML += `
-                    <p class="loser-text">😢 IMPOSTOR GEWINNT!</p>
+                    <p class="loser-text" style="font-size: 2rem;">😢 IMPOSTOR GEWINNT!</p>
                     <p>Das geheime Wort war: <strong>${state.currentWord}</strong></p>
-                    <p>Spieler ${state.impostorIndex + 1} war der Imposter!</p>
+                    <p style="margin-top: 10px;">${state.playerNames[state.impostorIndex]} war der Imposter!</p>
                 `;
             }
             
             resultBox.innerHTML = resultHTML;
         }
         
-        function newGame() {
+        function newRound() {
             startGame();
         }
         
         function resetGame() {
             state.playerCount = 4;
+            state.playerNames = [];
+            state.words = [];
+            state.impostorIndex = -1;
+            state.selectedImpostor = -1;
+            
             document.getElementById('playerCountSlider').value = 4;
             document.getElementById('playerCountDisplay').textContent = '4';
-            showScreen('screen-start');
+            showScreen('screen-players');
         }
         
         // Slider event listener
         document.getElementById('playerCountSlider').addEventListener('input', function(e) {
             document.getElementById('playerCountDisplay').textContent = e.target.value;
+        });
+        
+        // Enter key for name input
+        document.getElementById('playerNameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPlayerName();
+            }
         });
         
         // Initialize
